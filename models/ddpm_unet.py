@@ -34,18 +34,19 @@ class TimeEmbedding(nn.Module):
     Embeddings for $t$
     """
 
-    def __init__(self, n_channels: int):
+    def __init__(self, embedding_dim: int, hidden_dim=None, output_dim=None, act=None):
         """
-        * `n_channels` is the number of dimensions in the embedding
+        * `embedding_dim` is the number of dimensions in the embedding
         """
         super().__init__()
-        self.n_channels = n_channels
+        self.embedding_dim = embedding_dim
+        self.hidden_dim = hidden_dim if hidden_dim is not None else embedding_dim
+        self.output_dim = output_dim if output_dim is not None else embedding_dim
+        self.act = act if act is not None else Swish()
         # First linear layer
-        self.lin1 = nn.Linear(self.n_channels // 4, self.n_channels)
-        # Activation
-        self.act = Swish()
+        self.lin1 = nn.Linear(self.embedding_dim // 4, self.hidden_dim)
         # Second linear layer
-        self.lin2 = nn.Linear(self.n_channels, self.n_channels)
+        self.lin2 = nn.Linear(self.hidden_dim, self.output_dim)
 
     def forward(self, t: torch.Tensor):
         # Create sinusoidal position embeddings
@@ -67,7 +68,6 @@ class TimeEmbedding(nn.Module):
         emb = self.act(self.lin1(emb))
         emb = self.lin2(emb)
 
-        #
         return emb
 
 
@@ -418,7 +418,7 @@ def train_unet(model: torch.nn.Module,
                dataloader: DataLoader, 
                noise_scheduler, 
                optimizer: torch.optim.Optimizer, 
-               device: torch.device, 
+               device: torch.device = "cuda", 
                epochs: int = 10, 
                save_path: str = "./unet_model.pth"):
     """

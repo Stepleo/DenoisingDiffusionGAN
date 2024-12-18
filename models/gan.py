@@ -50,10 +50,10 @@ def gen_loss(loss_func, gen, disc, batch_size, z_dim):
 
 # Discriminator
 
-def discBlock(inp_nodes, out_nodes):
+def discBlock(inp_nodes, out_nodes, act=nn.LeakyReLU(0.2)):
   return nn.Sequential(
       nn.Linear(inp_nodes, out_nodes),
-      nn.LeakyReLU(0.2)
+      act,
   )
 
 
