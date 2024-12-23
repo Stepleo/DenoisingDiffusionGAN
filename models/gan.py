@@ -123,7 +123,7 @@ def train_gan(gen, disc, dataloader, gen_opt, disc_opt, loss_func, z_dim, epochs
     # Training loop
     for epoch in range(epochs):
         print(f"Epoch {epoch + 1}/{epochs}")
-        for real_image, _ in tqdm(dataloader, desc=f"Training Epoch {epoch + 1}"):
+        for real_image in tqdm(dataloader, desc=f"Training Epoch {epoch + 1}"):
             # Discriminator Step
             disc_opt.zero_grad()  # Reset gradients
 

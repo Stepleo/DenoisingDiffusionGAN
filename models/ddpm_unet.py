@@ -58,7 +58,7 @@ class TimeEmbedding(nn.Module):
         # \end{align}
         #
         # where $d$ is `half_dim`
-        half_dim = self.n_channels // 8
+        half_dim = self.embedding_dim // 8
         emb = math.log(10_000) / (half_dim - 1)
         emb = torch.exp(torch.arange(half_dim, device=t.device) * -emb)
         emb = t[:, None] * emb[None, :]
@@ -409,9 +409,10 @@ class NoiseScheduler:
         self.alpha_cumprod = torch.linspace(1.0, 0.0, num_train_timesteps)
 
     def add_noise(self, images, noise, timesteps):
-        sqrt_alpha_cumprod = torch.sqrt(self.alpha_cumprod[timesteps])[:, None, None, None]
-        sqrt_one_minus_alpha_cumprod = torch.sqrt(1 - self.alpha_cumprod[timesteps])[:, None, None, None]
-        return sqrt_alpha_cumprod * images + sqrt_one_minus_alpha_cumprod * noise
+        cpu_timesteps = timesteps.detach().cpu()
+        sqrt_alpha_cumprod = torch.sqrt(self.alpha_cumprod[cpu_timesteps])[:, None, None]
+        sqrt_one_minus_alpha_cumprod = torch.sqrt(1 - self.alpha_cumprod[cpu_timesteps])[:, None, None]
+        return sqrt_alpha_cumprod.to(images.device) * images + sqrt_one_minus_alpha_cumprod.to(images.device) * noise
     
 
 def train_unet(model: torch.nn.Module, 
@@ -445,7 +446,7 @@ def train_unet(model: torch.nn.Module,
         epoch_loss = 0.0
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{epochs}")
         
-        for step, (images, _) in enumerate(progress_bar):
+        for (_, images) in enumerate(progress_bar):
             images = images.to(device)  # Move images to device
             
             # Sample random timesteps for each image in the batch
@@ -457,7 +458,7 @@ def train_unet(model: torch.nn.Module,
             noise = torch.randn_like(images).to(device)
             
             # Add noise to the images at the selected timesteps
-            noisy_images = noise_scheduler.add_noise(images, noise, timesteps)
+            noisy_images = noise_scheduler.add_noise(images, noise, timesteps).unsqueeze(1)
             
             # Predict the noise with the U-Net model
             predicted_noise = model(noisy_images, timesteps)
