@@ -151,7 +151,11 @@ def train_gan(gen, disc, dataloader, gen_opt, disc_opt, loss_func, z_dim, epochs
             if cur_iter % info_iter == 0 and cur_iter > 0:
                 fake_noise = gen_noise(cur_batch_size, z_dim, device)
                 fake = gen(fake_noise)
+                #fake gives the logits of each pixel, we now need to convert it to 0/1 ?
                 
+                print(f"shape of fake: {fake.shape}")
+                print(f"shape of real_image: {real_image.shape}")
+                print(f" for the first fae image the sum of values is {fake[0].sum()}")
                 # Display real and fake images
                 print(f"Step {cur_iter}, Generator Loss: {mean_gen_loss:.4f}, Discriminator Loss: {mean_disc_loss:.4f}")
                 show(real_image[:16].cpu())  # Show first 16 real images

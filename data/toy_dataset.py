@@ -22,12 +22,15 @@ class GaussianGridDataset(Dataset):
         # 25 Gaussian centers in a grid, scaled to fit within the grid
         self.centers = np.array([(x, y) for x in range(-2, 3) for y in range(-2, 3)], dtype=np.float32)
         self.centers *= (grid_size / 6)  # Scale centers to fit within grid, leaving margins
+        self.centers += grid_size / 2  # Shift to center of grid
 
         # Generate samples
         self.data = []
         for _ in range(num_samples):
             center = self.centers[np.random.choice(len(self.centers))]
+            # print(center)
             point = np.random.normal(loc=center, scale=std_dev, size=center.shape)
+            # print(point)
             self.data.append(point)
 
         self.data = np.array(self.data, dtype=np.float32)
