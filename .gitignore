@@ -7,3 +7,9 @@ __pycache__/
 *.pt
 *.gz
 *ubyte
+
+#plots
+forward*
+reverse*
+
+
